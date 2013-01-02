@@ -36,3 +36,4 @@ nosetests.xml
 
 /archives
 /.idea
+settins.py

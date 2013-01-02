@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 import archiveConfig
-
 import wikipedia as pywikibot
 
 class PageArchiveParams():

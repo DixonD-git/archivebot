@@ -5,7 +5,7 @@ pathToAdd = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 if not pathToAdd in sys.path:
     sys.path.append(pathToAdd)
 
-from dxdLibrary import dxdCommonLibrary
+import common
 
 #configuration
 configTemplateName = u'Користувач:DixonDBot II/config'
@@ -28,7 +28,7 @@ months = [
 ]
 monthNames = [u'січень', u'лютий', u'березень', u'квітень', u'травень', u'червень', u'липень', u'серпень', u'вересень',
               u'жовтень', u'листопад', u'грудень']
-templatesToSubstitute = dxdCommonLibrary.templateAliases([u'Непідписано', u'unsigned', u'підпис', u'Done', u'Готово', u'зроблено', u'Welcome',
+templatesToSubstitute = common.templateAliases([u'Непідписано', u'unsigned', u'підпис', u'Done', u'Готово', u'зроблено', u'Welcome',
                                                           u'Ласкаво просимо', u'Hello', u'Вітання', u'привітання', u'Усмішка', u'Smile',
                                                           u'-)', u'8)', u'Смайл', u'Посмішка', u'Смайли', u'Нагорода', u'Нагорода2', u'Nobr',
                                                           u'S', u'Tl', u'T1', u'TL', u'Тл', u'Шаблон', u'Tl2', u'Сш', u'Місяць рок-музики'])

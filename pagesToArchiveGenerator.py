@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import wikipedia as pywikibot
+import pagegenerators
 
 def PagesToArchiveGenerator():
     site = pywikibot.Site('uk')
+
 
     yield pywikibot.Page(site = site,title = u'Обговорення користувача:Ehlla')
     yield pywikibot.Page(site = site,title = u'Обговорення користувача:Teodret')
