@@ -50,46 +50,13 @@ class PageArchiver:
 
         return oldSections
 
-    def getSectionsSlow(self, revId, defaultDateTime = None):
+    def getSections(self, revId, text = None, defaultDateTime = None):
         if defaultDateTime is None:
             defaultDateTime = self.currentDate
 
-        sections = pagetools.getSectionsFull(self.page, revId = revId)
+        pageRevision = pagetools.PageRevision(self.page, revId, text)
+        sections = pageRevision.getSections()
         sections = [{u'revId': revId, u'text': section[u'text'], u'title': section[u'title'], u'lastTimestamp': self.getLastEditTime(section[u'text'], defaultDateTime=defaultDateTime)} for section in sections]
-        return sections
-
-    def getSections(self, content = None, defaultDateTime = None):
-
-        if defaultDateTime is None:
-            defaultDateTime = self.currentDate
-
-        params = {
-            u'action' : u'parse',
-            u'prop'   : u'sections',
-            }
-
-        if content is None:
-            params[u'page'] = self.page.title()
-            content = self.page.get()
-        else:
-            params[u'text'] = content
-            params[u'title'] = self.page.title()
-
-
-        result = query.GetData(params, self.page.site())
-        result = result[u'parse'][u'sections']
-
-        for item in result:
-            if item[u'byteoffset'] >= len(content):
-                pywikibot.output(u'ERROR: cannot parse sections properly!')
-                return []
-        sections = [ (item[u'byteoffset'], item[u'line']) for item in result if item[u'level'] == u'2' and not item[u'byteoffset'] is None]
-
-        sections.append((len(content), None))
-
-        sections = [(content[pair[0][0]:pair[1][0]].strip(), pair[0][1]) for pair in itertools.izip(sections[:-1], sections[1:])]
-        sections = [(item[0], item[1], self.getLastEditTime(item[0], defaultDateTime=defaultDateTime)) for item in sections]
-
         return sections
 
     def getLastEditTime(self, sectionText, defaultDateTime = None):
@@ -267,9 +234,9 @@ class PageArchiver:
         # old versions
         if self.archiveParams.retrospective:
             pywikibot.output(u'ATTENTION: it is set to work retrospectively on [[' + self.page.title() + u']]!')
+            pywikibot.output(u'Retrieving a history of [[' + self.page.title() + u']]...')
             #history = self.page.fullVersionHistory(reverseOrder = True, revCount = 127)[-10:]
-            #history = self.page.fullVersionHistory(reverseOrder = True, getAll = True)
-            history = self.page.getVersionHistory(reverseOrder = True, getAll = True)
+            history = self.page.fullVersionHistory(reverseOrder = True, getAll = True)
             pywikibot.output(unicode(len(history)) + u' revisions were retrieved.')
 
             pywikibot.output(u'Starting splitting of old revisions to sections...')
@@ -279,7 +246,7 @@ class PageArchiver:
                 revId = int(item[0])
                 revDate = datetime.datetime.strptime(item[1], "%Y-%m-%dT%H:%M:%SZ")
                 pywikibot.output(unicode(revisionCountLeft) + u' revision(s) left to split to sections.')
-                revSections = self.getSectionsSlow(revId, revDate)
+                revSections = self.getSections(revId, text = item[3], defaultDateTime = revDate)
                 if len(revSections) > 0:
                     revSections[-1][u'text'] = self.removeBottomPart(revSections[-1][u'text'])
 
@@ -302,7 +269,7 @@ class PageArchiver:
         pywikibot.output(u'Splitting of the current version to sections...')
         currentTalkText = self.page.get()
         lastRevisionId = int(self.page._revisionId)
-        sections = self.getSectionsSlow(lastRevisionId, self.currentDate)
+        sections = self.getSections(lastRevisionId, text = currentTalkText, defaultDateTime = self.currentDate)
         if len(sections) > 0:
             sections[-1][u'text'] = self.removeBottomPart(sections[-1][u'text'])
         pywikibot.output(u'Finished splitting of the current version to sections.')

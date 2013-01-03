@@ -10,9 +10,12 @@ import pagesToArchiveGenerator
 import archivePage
 import common
 import settings
-
+import config
 
 def main():
+    # turn off cosmetic changes
+    config.cosmetic_changes = False
+
     # login with archive bot account
     common.login(settings.username, settings.password)
 
