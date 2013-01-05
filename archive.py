@@ -13,6 +13,8 @@ import settings
 import config
 
 def main():
+    #pywikibot.verbose = True
+
     # turn off cosmetic changes
     config.cosmetic_changes = False
 

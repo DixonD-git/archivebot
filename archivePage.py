@@ -59,6 +59,14 @@ class PageArchiver:
         sections = [{u'revId': revId, u'text': section[u'text'], u'title': section[u'title'], u'lastTimestamp': self.getLastEditTime(section[u'text'], defaultDateTime=defaultDateTime)} for section in sections]
         return sections
 
+    def getSections(self, pageRevision, defaultDateTime = None):
+        if defaultDateTime is None:
+            defaultDateTime = self.currentDate
+
+        sections = pageRevision.getSections()
+        sections = [{u'revId': pageRevision.revId, u'text': section[u'text'], u'title': section[u'title'], u'lastTimestamp': self.getLastEditTime(section[u'text'], defaultDateTime=defaultDateTime)} for section in sections]
+        return sections
+
     def getLastEditTime(self, sectionText, defaultDateTime = None):
         if defaultDateTime is None:
             defaultDateTime = self.currentDate
@@ -234,42 +242,54 @@ class PageArchiver:
         # old versions
         if self.archiveParams.retrospective:
             pywikibot.output(u'ATTENTION: it is set to work retrospectively on [[' + self.page.title() + u']]!')
-            pywikibot.output(u'Retrieving a history of [[' + self.page.title() + u']]...')
-            #history = self.page.fullVersionHistory(reverseOrder = True, revCount = 127)[-10:]
-            history = self.page.fullVersionHistory(reverseOrder = True, getAll = True)
-            pywikibot.output(unicode(len(history)) + u' revisions were retrieved.')
 
-            pywikibot.output(u'Starting splitting of old revisions to sections...')
-            revisionCountLeft = len(history)
-            revisions = []
-            for item in history:
-                revId = int(item[0])
-                revDate = datetime.datetime.strptime(item[1], "%Y-%m-%dT%H:%M:%SZ")
-                pywikibot.output(unicode(revisionCountLeft) + u' revision(s) left to split to sections.')
-                revSections = self.getSections(revId, text = item[3], defaultDateTime = revDate)
-                if len(revSections) > 0:
-                    revSections[-1][u'text'] = self.removeBottomPart(revSections[-1][u'text'])
+            # work with history by batches
+            pageHistory = pagetools.PageHistory(self.page)
+            startRevisionId = None
+            revisionCountLeft = pageHistory.getAllRevisionsCount()
+            while True:
+                pywikibot.output(u'Loading more {0} revisions of [[{1}]]...'.format(archiveConfig.revisionBatchSize,
+                        self.page.title()))
+                revisions = pageHistory.getFullHistory(reverseOrder = True, revCount = archiveConfig.revisionBatchSize, startRevId = startRevisionId)
+                pywikibot.output(u'{0} revisions were retrieved.'.format(len(revisions)))
 
-                revisions.append({u'id': revId, u'sections': revSections, u'date': revDate})
+                if len(revisions) <= 1:
+                    pywikibot.output(u'Finished with history of [[{0}]].'.format(self.page.title()))
+                    break
 
-                revisionCountLeft -= 1
-            pywikibot.output(u'Finished splitting of old revisions to sections.')
+                pywikibot.output(u'Starting splitting of old revisions to sections...')
+                if not startRevisionId is None:
+                    revisionCountLeft += 1
+                sectionMap = dict()
+                for revision in revisions:
+                    pywikibot.output(unicode(revisionCountLeft) + u' revision(s) left to split to sections.')
+                    revSections = self.getSections(revision, defaultDateTime = revision.editDate)
+                    if len(revSections) > 0:
+                        revSections[-1][u'text'] = self.removeBottomPart(revSections[-1][u'text'])
 
-            for pair in itertools.izip(revisions[:-1], revisions[1:]):
-                self.sectionsToArchive += self.findMissingSections(pair[0][u'sections'], pair[1][u'sections'])
+                    sectionMap[revision.revId] = revSections
 
-            # remove sections that were reverted
-            for revision in revisions:
-                revId = revision[u'id']
-                revisionSectionTexts = [section[u'text'].strip() for section in revision[u'sections']]
-                self.sectionsToArchive = [item for item in self.sectionsToArchive if item[u'revId'] >= revId or not item[u'text'] in revisionSectionTexts]
+                    revisionCountLeft -= 1
+                pywikibot.output(u'Finished splitting of revisions to sections.')
+
+                for pair in itertools.izip(revisions[:-1], revisions[1:]):
+                    self.sectionsToArchive += self.findMissingSections(sectionMap[pair[0].revId], sectionMap[pair[1].revId])
+
+                # remove sections that were reverted
+                for revision in revisions:
+                    revisionSectionTexts = [section[u'text'].strip() for section in sectionMap[revision.revId]]
+                    self.sectionsToArchive = [item for item in self.sectionsToArchive if item[u'revId'] >= revision.revId or not item[u'text'] in revisionSectionTexts]
+
+                # setting start rev id for next batch
+                startRevisionId = revisions[-1].revId
 
 
         # current version
         pywikibot.output(u'Splitting of the current version to sections...')
         currentTalkText = self.page.get()
-        lastRevisionId = int(self.page._revisionId)
-        sections = self.getSections(lastRevisionId, text = currentTalkText, defaultDateTime = self.currentDate)
+        lastRevisionId = self.page.latestRevision()
+        pageRevision = pagetools.PageRevision(self.page, revId = lastRevisionId, text = currentTalkText)
+        sections = self.getSections(pageRevision, defaultDateTime = self.currentDate)
         if len(sections) > 0:
             sections[-1][u'text'] = self.removeBottomPart(sections[-1][u'text'])
         pywikibot.output(u'Finished splitting of the current version to sections.')

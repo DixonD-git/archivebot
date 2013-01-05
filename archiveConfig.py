@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-import sys, os
-
-pathToAdd = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
-if not pathToAdd in sys.path:
-    sys.path.append(pathToAdd)
-
 import common
 
 #configuration
@@ -34,3 +28,4 @@ templatesToSubstitute = common.templateAliases([u'Непідписано', u'uns
                                                           u'S', u'Tl', u'T1', u'TL', u'Тл', u'Шаблон', u'Tl2', u'Сш', u'Місяць рок-музики'])
 disabledParts = {ur'<!--.*?-->', ur'<includeonly>.*?</includeonly>'}
 unsignedSection = u'\n<br /><small>Розділ без дати --~~~~</small>'
+revisionBatchSize = 700
