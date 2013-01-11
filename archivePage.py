@@ -306,10 +306,11 @@ class PageArchiver:
 
 
         sections = sorted(sections, key=lambda item: item[u'lastTimestamp'])
-        if len(sections) > self.archiveParams.minThreadsLeft:
-            sections = sections[:-self.archiveParams.minThreadsLeft]
-        else:
-            sections = []
+        if self.archiveParams.minThreadsLeft > 0:
+            if len(sections) > self.archiveParams.minThreadsLeft:
+                sections = sections[:-self.archiveParams.minThreadsLeft]
+            else:
+                sections = []
 
         for sectionInfo in sections:
             delta = self.currentDate - sectionInfo[u'lastTimestamp']
