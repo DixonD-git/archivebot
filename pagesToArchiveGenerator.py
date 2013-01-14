@@ -3,7 +3,7 @@ import wikipedia as pywikibot
 import pagegenerators
 import archiveConfig
 
-skipList = {u'Вікіпедія:Кнайпа (технічні питання)'}
+skipList = set()
 
 def PagesToArchiveGenerator():
     site = pywikibot.Site('uk')

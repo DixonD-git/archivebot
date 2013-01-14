@@ -23,9 +23,11 @@ months = [
 monthNames = [u'січень', u'лютий', u'березень', u'квітень', u'травень', u'червень', u'липень', u'серпень', u'вересень',
               u'жовтень', u'листопад', u'грудень']
 templatesToSubstitute = common.templateAliases([u'Непідписано', u'unsigned', u'підпис', u'Done', u'Готово', u'зроблено', u'Welcome',
-                                                          u'Ласкаво просимо', u'Hello', u'Вітання', u'привітання', u'Усмішка', u'Smile',
-                                                          u'-)', u'8)', u'Смайл', u'Посмішка', u'Смайли', u'Нагорода', u'Нагорода2', u'Nobr',
-                                                          u'S', u'Tl', u'T1', u'TL', u'Тл', u'Шаблон', u'Tl2', u'Сш', u'Місяць рок-музики'])
+                                              u'Ласкаво просимо', u'Hello', u'Вітання', u'привітання', u'Усмішка', u'Smile',
+                                              u'-)', u'8)', u'Смайл', u'Посмішка', u'Смайли', u'Нагорода', u'Нагорода2', u'Nobr',
+                                              u'S', u'Tl', u'T1', u'TL', u'Тл', u'Шаблон', u'Tl2', u'Сш', u'Місяць рок-музики',
+                                              u'diff', u'Диф', u'Comment', u'Notice', u'Цитата', u'За', u'Проти', u'Особлива думка',
+                                              u'Sign/', u'Sign2'])
 disabledParts = {ur'<!--.*?-->', ur'<includeonly>.*?</includeonly>'}
 unsignedSection = u'\n<br /><small>Розділ без дати --~~~~</small>'
-revisionBatchSize = 700
+revisionBatchSize = 400
