@@ -2,7 +2,6 @@
 import wikipedia as pywikibot
 import datetime
 import itertools
-import query
 import re
 import archiveConfig
 import pageArchiveParams
@@ -286,7 +285,7 @@ class PageArchiver:
 
         # current version
         pywikibot.output(u'Splitting of the current version to sections...')
-        currentTalkText = self.page.get()
+        currentTalkText = self.page.get(force = self.archiveParams.retrospective)
         lastRevisionId = self.page.latestRevision()
         pageRevision = pagetools.PageRevision(self.page, revId = lastRevisionId, text = currentTalkText)
         sections = self.getSections(pageRevision, defaultDateTime = self.currentDate)
