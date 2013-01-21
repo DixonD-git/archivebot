@@ -303,6 +303,10 @@ class PageArchiver:
                     numberOfSignedThreads += 1
             pywikibot.output(u'Signed ' + unicode(numberOfSignedThreads) + u' unsigned section(s)...')
 
+        # remove duplicates
+        seen = set()
+        seen_add = seen.add
+        sections = [section for section in sections if section[u'text'] not in seen and not seen_add(section[u'text'])]
 
         sections = sorted(sections, key=lambda item: item[u'lastTimestamp'])
         if self.archiveParams.minThreadsLeft > 0:
