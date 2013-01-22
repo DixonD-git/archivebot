@@ -65,15 +65,6 @@ class PageArchiver:
 
         return oldSections
 
-    def getSections(self, revId, text = None, defaultDateTime = None):
-        if defaultDateTime is None:
-            defaultDateTime = self.currentDate
-
-        pageRevision = pagetools.PageRevision(self.page, revId, text)
-        sections = pageRevision.getSections()
-        sections = [{u'revId': revId, u'text': section[u'text'], u'title': section[u'title'], u'lastTimestamp': self.getLastEditTime(section[u'text'], defaultDateTime=defaultDateTime)} for section in sections]
-        return sections
-
     def getSections(self, pageRevision, defaultDateTime = None):
         if defaultDateTime is None:
             defaultDateTime = self.currentDate
