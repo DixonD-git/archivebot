@@ -22,6 +22,8 @@ import re
 import archiveConfig
 import pageArchiveParams
 import pagetools
+import settings
+
 
 class PageArchiver:
     def __init__(self, page):
@@ -36,8 +38,9 @@ class PageArchiver:
                 self.monthToNumber[month] = number + 1
 
         allMonthNames = [re.escape(month) for month in allMonthNames]
-        self.dateRegex = re.compile(u'(?P<hour>\\d\\d):(?P<minute>\\d\\d),\\s+(?P<day>\\d+)\\s+(?P<month>' + u'|'.join(allMonthNames)
-                                    + u')\\s+(?P<year>20\\d\\d)')
+        self.dateRegex = re.compile(
+            u'(?P<hour>\\d\\d):(?P<minute>\\d\\d),\\s+(?P<day>\\d+)\\s+(?P<month>' + u'|'.join(allMonthNames)
+            + u')\\s+(?P<year>20\\d\\d)')
 
         # other parameters
         self.page = page
@@ -49,31 +52,35 @@ class PageArchiver:
         self.disabledParts = archiveConfig.disabledParts
         languages = '|'.join(page.site().validLanguageLinks() + page.site().family.obsolete.keys())
         self.disabledParts.add(re.compile(r'\[\[(%s)\s?:[^\[\]\n]*\]\][\s]*'
-                            % languages, re.IGNORECASE))
+                                          % languages, re.IGNORECASE))
         catNamespace = '|'.join(page.site().category_namespaces())
         self.disabledParts.add(re.compile(r'\[\[\s*(%s)\s*:.*?\]\]\s*' % catNamespace, re.I))
 
     def findMissingSections(self, oldSections, newSections):
         #level 1: same text
-        sameSections = set.intersection(set(section[u'text'] for section in oldSections), set(section[u'text'] for section in newSections))
+        sameSections = set.intersection(set(section[u'text'] for section in oldSections),
+                                        set(section[u'text'] for section in newSections))
         oldSections = [section for section in oldSections if not section[u'text'] in sameSections]
         newSections = [section for section in newSections if not section[u'text'] in sameSections]
 
         #level 2: same title
-        sameTitles = set.intersection(set(section[u'title'] for section in oldSections), set(section[u'title'] for section in newSections))
+        sameTitles = set.intersection(set(section[u'title'] for section in oldSections),
+                                      set(section[u'title'] for section in newSections))
         oldSections = [section for section in oldSections if not section[u'title'] in sameTitles]
 
         return oldSections
 
-    def getSections(self, pageRevision, defaultDateTime = None):
+    def getSections(self, pageRevision, defaultDateTime=None):
         if defaultDateTime is None:
             defaultDateTime = self.currentDate
 
         sections = pageRevision.getSections()
-        sections = [{u'revId': pageRevision.revId, u'text': section[u'text'], u'title': section[u'title'], u'lastTimestamp': self.getLastEditTime(section[u'text'], defaultDateTime=defaultDateTime)} for section in sections]
+        sections = [{u'revId': pageRevision.revId, u'text': section[u'text'], u'title': section[u'title'],
+                     u'lastTimestamp': self.getLastEditTime(section[u'text'], defaultDateTime=defaultDateTime)} for
+                    section in sections]
         return sections
 
-    def getLastEditTime(self, sectionText, defaultDateTime = None):
+    def getLastEditTime(self, sectionText, defaultDateTime=None):
         if defaultDateTime is None:
             defaultDateTime = self.currentDate
 
@@ -89,11 +96,11 @@ class PageArchiver:
         return defaultDateTime if dateMax is None else dateMax
 
     def constructArchivePageName(self, sectionInfo):
-        return self.archiveParams.currentArchivePageTemplate\
-            .replace(u'%counter%', unicode(self.archiveParams.counter))\
-            .replace(u'%year%', unicode(sectionInfo[u'lastTimestamp'].year))\
-            .replace(u'%month%', unicode(sectionInfo[u'lastTimestamp'].month))\
-            .replace(u'%monthname%', archiveConfig.monthNames[int(sectionInfo[u'lastTimestamp'].month)-1])
+        return self.archiveParams.currentArchivePageTemplate \
+            .replace(u'%counter%', unicode(self.archiveParams.counter)) \
+            .replace(u'%year%', unicode(sectionInfo[u'lastTimestamp'].year)) \
+            .replace(u'%month%', unicode(sectionInfo[u'lastTimestamp'].month)) \
+            .replace(u'%monthname%', archiveConfig.monthNames[int(sectionInfo[u'lastTimestamp'].month) - 1])
 
     def utf8len(self, s):
         return len(s.encode('utf-8'))
@@ -115,8 +122,8 @@ class PageArchiver:
 
             # if there is %counter% param, check max archive size, else just archive the thread
             if self.archiveParams.currentArchivePageTemplate.find(u'%counter%') == -1 \
-               or self.archiveTexts[archiveName] == u''\
-               or self.utf8len(newArchiveText) <= self.archiveParams.maxArchiveSize:
+                or self.archiveTexts[archiveName] == u'' \
+                or self.utf8len(newArchiveText) <= self.archiveParams.maxArchiveSize:
                 self.archiveTexts[archiveName] = newArchiveText
                 self.archiveCounts[archiveName] += 1
                 return
@@ -135,7 +142,8 @@ class PageArchiver:
         return 2
 
     def doArchive(self, talkPageText):
-        if not self.archiveParams.retrospective and len(self.sectionsToArchive) < self.archiveParams.minThreadsToArchive:
+        if not self.archiveParams.retrospective and len(
+                self.sectionsToArchive) < self.archiveParams.minThreadsToArchive:
             pywikibot.output(u'Too few threads to archive. Finishing...')
             return
 
@@ -159,19 +167,23 @@ class PageArchiver:
             archivePage = pywikibot.Page(self.page.site(), archiveName)
             archivePageLink = archivePage.title(asLink=True)
             archivePageTitles.append(archivePageLink)
-            editSummary = archiveConfig.archivePageEditSummary.replace(u'%count%', unicode(self.archiveCounts[archiveName]))\
-                .replace(u'%threads%', archiveConfig.threads[self.selectEndingAfterNumeral(self.archiveCounts[archiveName])])\
+            editSummary = archiveConfig.archivePageEditSummary.replace(u'%count%',
+                                                                       unicode(self.archiveCounts[archiveName])) \
+                .replace(u'%threads%',
+                         archiveConfig.threads[self.selectEndingAfterNumeral(self.archiveCounts[archiveName])]) \
                 .replace(u'%talkPage%', self.page.title(asLink=True))
 
-            pywikibot.output(u'Archiving ' + unicode(self.archiveCounts[archiveName]) + u' thread(s) to ' + archivePageLink + u'...')
+            pywikibot.output(
+                u'Archiving ' + unicode(self.archiveCounts[archiveName]) + u' thread(s) to ' + archivePageLink + u'...')
             self.savePageText(archivePage, self.archiveTexts[archiveName], editSummary)
 
         # update talk page
         talkPageText = self.updateConfigOnTalkPage(talkPageText)
-        editSummary = archiveConfig.talkPageEditSummary.replace(u'%count%', unicode(numberOfRemovedThreads))\
-            .replace(u'%threads%', archiveConfig.threads[self.selectEndingAfterNumeral(numberOfRemovedThreads)])\
+        editSummary = archiveConfig.talkPageEditSummary.replace(u'%count%', unicode(numberOfRemovedThreads)) \
+            .replace(u'%threads%', archiveConfig.threads[self.selectEndingAfterNumeral(numberOfRemovedThreads)]) \
             .replace(u'%archivePages%', u', '.join(archivePageTitles))
-        pywikibot.output(u'Removing ' + unicode(numberOfRemovedThreads) + u' thread(s) from ' + self.page.title(asLink=True) + u'...')
+        pywikibot.output(u'Removing ' + unicode(numberOfRemovedThreads) + u' thread(s) from ' + self.page.title(
+            asLink=True) + u'...')
         self.savePageText(self.page, talkPageText, editSummary)
 
     def getRegexForTemplate(self, templateName, params):
@@ -181,7 +193,8 @@ class PageArchiver:
         for paramValue in params.itervalues():
             countOfSubTemplates += len(re.findall(u'}}', paramValue))
 
-        templateRegex = ur'{{\s*' + re.escape(templateName) + ur'(?:[^}]*\}\}){' + unicode(countOfSubTemplates) + ur'}[^}]*\}\}'
+        templateRegex = ur'{{\s*' + re.escape(templateName) + ur'(?:[^}]*\}\}){' + unicode(
+            countOfSubTemplates) + ur'}[^}]*\}\}'
         return templateRegex
 
 
@@ -194,7 +207,9 @@ class PageArchiver:
                 if self.archiveParams.currentArchivePageTemplate.find(u'%counter%') <> -1:
                     params[u'counter'] = unicode(self.archiveParams.counter)
                 templateRegex = self.getRegexForTemplate(archiveConfig.configTemplateName, params)
-                talkPageText = re.sub(templateRegex, pywikibot.glue_template_and_params((archiveConfig.configTemplateName, params)), talkPageText)
+                talkPageText = re.sub(templateRegex,
+                                      pywikibot.glue_template_and_params((archiveConfig.configTemplateName, params)),
+                                      talkPageText)
                 return talkPageText
         return talkPageText
 
@@ -255,8 +270,9 @@ class PageArchiver:
             revisionCountLeft = pageHistory.getAllRevisionsCount()
             while True:
                 pywikibot.output(u'Loading more {0} revisions of [[{1}]]...'.format(archiveConfig.revisionBatchSize,
-                        self.page.title()))
-                revisions = pageHistory.getFullHistory(reverseOrder = True, revCount = archiveConfig.revisionBatchSize, startRevId = startRevisionId)
+                                                                                    self.page.title()))
+                revisions = pageHistory.getFullHistory(reverseOrder=True, revCount=archiveConfig.revisionBatchSize,
+                                                       startRevId=startRevisionId)
                 pywikibot.output(u'{0} revisions were retrieved.'.format(len(revisions)))
 
                 if len(revisions) <= 1:
@@ -269,7 +285,7 @@ class PageArchiver:
                 sectionMap = dict()
                 for revision in revisions:
                     pywikibot.output(unicode(revisionCountLeft) + u' revision(s) left to split to sections.')
-                    revSections = self.getSections(revision, defaultDateTime = revision.editDate)
+                    revSections = self.getSections(revision, defaultDateTime=revision.editDate)
                     if len(revSections) > 0:
                         revSections[-1][u'text'] = self.removeBottomPart(revSections[-1][u'text'])
 
@@ -279,12 +295,15 @@ class PageArchiver:
                 pywikibot.output(u'Finished splitting of revisions to sections.')
 
                 for pair in itertools.izip(revisions[:-1], revisions[1:]):
-                    self.sectionsToArchive += self.findMissingSections(sectionMap[pair[0].revId], sectionMap[pair[1].revId])
+                    self.sectionsToArchive += self.findMissingSections(sectionMap[pair[0].revId],
+                                                                       sectionMap[pair[1].revId])
 
                 # remove sections that were reverted
                 for revision in revisions:
                     revisionSectionTexts = [section[u'text'].strip() for section in sectionMap[revision.revId]]
-                    self.sectionsToArchive = [item for item in self.sectionsToArchive if item[u'revId'] >= revision.revId or not item[u'text'] in revisionSectionTexts]
+                    self.sectionsToArchive = [item for item in self.sectionsToArchive if
+                                              item[u'revId'] >= revision.revId or not item[
+                                                                                          u'text'] in revisionSectionTexts]
 
                 # setting start rev id for next batch
                 startRevisionId = revisions[-1].revId
@@ -292,10 +311,10 @@ class PageArchiver:
 
         # current version
         pywikibot.output(u'Splitting of the current version to sections...')
-        currentTalkText = self.page.get(force = self.archiveParams.retrospective)
+        currentTalkText = self.page.get(force=self.archiveParams.retrospective)
         lastRevisionId = self.page.latestRevision()
-        pageRevision = pagetools.PageRevision(self.page, revId = lastRevisionId, text = currentTalkText)
-        sections = self.getSections(pageRevision, defaultDateTime = self.currentDate)
+        pageRevision = pagetools.PageRevision(self.page, revId=lastRevisionId, text=currentTalkText)
+        sections = self.getSections(pageRevision, defaultDateTime=self.currentDate)
         if len(sections) > 0:
             sections[-1][u'text'] = self.removeBottomPart(sections[-1][u'text'])
         pywikibot.output(u'Finished splitting of the current version to sections.')
@@ -306,7 +325,8 @@ class PageArchiver:
             numberOfSignedThreads = 0
             for sectionInfo in sections:
                 if sectionInfo[u'lastTimestamp'] == self.currentDate:
-                    currentTalkText = currentTalkText.replace(sectionInfo[u'text'], sectionInfo[u'text'] + archiveConfig.unsignedSection)
+                    currentTalkText = currentTalkText.replace(sectionInfo[u'text'],
+                                                              sectionInfo[u'text'] + archiveConfig.unsignedSection)
                     numberOfSignedThreads += 1
             pywikibot.output(u'Signed ' + unicode(numberOfSignedThreads) + u' unsigned section(s)...')
 
@@ -331,9 +351,12 @@ class PageArchiver:
         self.doArchive(currentTalkText)
 
     def savePageText(self, page, text, editSummary):
-        with open(u'archives/' + page.title().replace(u'/', u'!!').replace(u':', u'_') + u'.txt', 'w') as f:
-            f.write(text.encode("utf_8"))
+        if settings.archives_dir:
+            with open(settings.archives_dir + page.title().replace(u'/', u'!!').replace(u':', u'_') + u'.txt',
+                      'w') as f:
+                f.write(text.encode("utf_8"))
+
         try:
-            page.put(text, comment = editSummary, force = True)
+            page.put(text, comment=editSummary, force=True)
         except pywikibot.LockedPage:
-            pywikibot.output(u'Cannot update ' + page.title(asLink = True))
+            pywikibot.output(u'Cannot update ' + page.title(asLink=True))
