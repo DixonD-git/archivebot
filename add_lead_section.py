@@ -21,12 +21,12 @@ pathToAdd = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 if not pathToAdd in sys.path:
     sys.path.append(pathToAdd)
 
-import query
-import pagegenerators
-import wikipedia as pywikibot
+
+from pywikibot import pagegenerators
+import pywikibot
 import re
 import archiveConfig
-from dxdLibrary import dxdCommonLibrary
+import common
 
 username = u'DixonDBot'
 acceptAll = False
@@ -55,8 +55,8 @@ class LeadSectionFormatter:
             params[u'text'] = content
             params[u'title'] = self.page.title()
 
-
-        result = query.GetData(params, self.page.site())
+        params[u'site'] = self.page.site
+        result = pywikibot.data.api.Request(**params).submit()
         result = result[u'parse'][u'sections']
 
         sections = [ (item[u'byteoffset'], item[u'line']) for item in result if item[u'level'] == u'2']
@@ -131,7 +131,8 @@ class LeadSectionFormatter:
             u'rvsection': 0
         }
 
-        result = query.GetData(params, self.page.site())
+        params[u'site'] = self.page.site
+        result = pywikibot.data.api.Request(**params).submit()
         leadText = result[u'query'][u'pages'].values()[0][u'revisions'][0][u'*']
 
         leadTextWithoutTemplates = self.removeTopPart(leadText).strip()
@@ -167,8 +168,8 @@ class LeadSectionFormatter:
 
 # main code
 if __name__ == '__main__':
-    dxdCommonLibrary.login(username)
-    talkPages = pagegenerators.AllpagesPageGenerator(namespace = 1, includeredirects = False, site = dxdCommonLibrary.getWikiSite())
+    common.login(username)
+    talkPages = pagegenerators.AllpagesPageGenerator(namespace = 1, includeredirects = False, site = common.getWikiSite())
     #talkPages = [pywikibot.Page(site = dxdCommonLibrary.getWikiSite() ,title = u'Обговорення користувача:RLuts')]
     talkPages = pagegenerators.PreloadingGenerator(talkPages)
     # do work

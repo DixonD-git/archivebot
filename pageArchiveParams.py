@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
 import archiveConfig
-import wikipedia as pywikibot
+import pywikibot
 
 class PageArchiveParams():
     def __init__(self, olderThan = datetime.timedelta(days=90), currentArchivePageTemplate = None, counter = 1,

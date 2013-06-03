@@ -15,7 +15,7 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import wikipedia as pywikibot
+import pywikibot
 import datetime
 import itertools
 import re
@@ -50,10 +50,10 @@ class PageArchiver:
         self.currentDate = datetime.datetime.utcnow()
 
         self.disabledParts = archiveConfig.disabledParts
-        languages = '|'.join(page.site().validLanguageLinks() + page.site().family.obsolete.keys())
+        languages = '|'.join(page.site.validLanguageLinks() + page.site.family.obsolete.keys())
         self.disabledParts.add(re.compile(r'\[\[(%s)\s?:[^\[\]\n]*\]\][\s]*'
                                           % languages, re.IGNORECASE))
-        catNamespace = '|'.join(page.site().category_namespaces())
+        catNamespace = '|'.join(page.site.category_namespaces())
         self.disabledParts.add(re.compile(r'\[\[\s*(%s)\s*:.*?\]\]\s*' % catNamespace, re.I))
 
     def findMissingSections(self, oldSections, newSections):
@@ -108,7 +108,7 @@ class PageArchiver:
     def archiveThread(self, sectionInfo):
         while True:
             archiveName = self.constructArchivePageName(sectionInfo)
-            archivePage = pywikibot.Page(self.page.site(), archiveName)
+            archivePage = pywikibot.Page(self.page.site, archiveName)
 
             if not archiveName in self.archiveTexts:
                 self.archiveTexts[archiveName] = archivePage.get().strip() if archivePage.exists() else u''
@@ -164,7 +164,7 @@ class PageArchiver:
         # update archives
         archivePageTitles = []
         for archiveName in self.archiveTexts:
-            archivePage = pywikibot.Page(self.page.site(), archiveName)
+            archivePage = pywikibot.Page(self.page.site, archiveName)
             archivePageLink = archivePage.title(asLink=True)
             archivePageTitles.append(archivePageLink)
             editSummary = archiveConfig.archivePageEditSummary.replace(u'%count%',

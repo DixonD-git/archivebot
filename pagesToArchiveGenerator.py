@@ -15,16 +15,17 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import wikipedia as pywikibot
-import pagegenerators
+import pywikibot
+from pywikibot import pagegenerators
 import archiveConfig
 
 skipList = set()
 
+
 def PagesToArchiveGenerator():
     site = pywikibot.Site('uk')
 
-    template = pywikibot.Page(site = site, title = archiveConfig.configTemplateName)
-    pages =  pagegenerators.ReferringPageGenerator(template, onlyTemplateInclusion=True)
+    template = pywikibot.Page(site, archiveConfig.configTemplateName)
+    pages = pagegenerators.ReferringPageGenerator(template, onlyTemplateInclusion=True)
     pages = [page for page in pages if not page.title() in skipList]
     return pages
