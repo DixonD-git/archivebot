@@ -38,7 +38,7 @@ class PageArchiveParams():
     def getParamsForPage(page):
         pageArchiveParams = PageArchiveParams(currentArchivePageTemplate = page.title() + u'/Архів %counter%')
 
-        templates = pywikibot.extract_templates_and_params(page.get())
+        templates = pywikibot.textlib.extract_templates_and_params(page.get())
         for name, params in templates:
             if name == archiveConfig.configTemplateName:
                 for paramName, paramValue in params.iteritems():

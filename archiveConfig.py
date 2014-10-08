@@ -46,4 +46,4 @@ templatesToSubstitute = common.templateAliases([u'Непідписано', u'uns
                                               u'Sign/', u'Sign2'])
 disabledParts = {ur'<!--.*?-->', ur'<includeonly>.*?</includeonly>'}
 unsignedSection = u'\n<br /><small>Розділ без дати --~~~~</small>'
-revisionBatchSize = 400
+revisionBatchSize = 50

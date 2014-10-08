@@ -22,10 +22,11 @@ import archiveConfig
 skipList = set()
 
 
-def PagesToArchiveGenerator():
-    site = pywikibot.Site('uk')
-
-    template = pywikibot.Page(site, archiveConfig.configTemplateName)
-    pages = pagegenerators.ReferringPageGenerator(template, onlyTemplateInclusion=True)
-    pages = [page for page in pages if not page.title() in skipList]
-    return pages
+def PagesToArchiveGenerator(sites):
+    for site in sites:
+        template = pywikibot.Page(site, archiveConfig.configTemplateName)
+        pages = pagegenerators.ReferringPageGenerator(template, onlyTemplateInclusion=True)
+        for page in pages:
+            if not page.title() in skipList:
+                yield page
+        break

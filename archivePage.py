@@ -165,7 +165,7 @@ class PageArchiver:
         archivePageTitles = []
         for archiveName in self.archiveTexts:
             archivePage = pywikibot.Page(self.page.site, archiveName)
-            archivePageLink = archivePage.title(asLink=True)
+            archivePageLink = u'[[%s]]' % archivePage.title()
             archivePageTitles.append(archivePageLink)
             editSummary = archiveConfig.archivePageEditSummary.replace(u'%count%',
                                                                        unicode(self.archiveCounts[archiveName])) \
@@ -199,7 +199,7 @@ class PageArchiver:
 
 
     def updateConfigOnTalkPage(self, talkPageText):
-        templates = pywikibot.extract_templates_and_params(talkPageText)
+        templates = pywikibot.textlib.extract_templates_and_params(talkPageText)
         for name, params in templates:
             if name == archiveConfig.configTemplateName:
                 if u'retrospective' in params:
@@ -208,13 +208,13 @@ class PageArchiver:
                     params[u'counter'] = unicode(self.archiveParams.counter)
                 templateRegex = self.getRegexForTemplate(archiveConfig.configTemplateName, params)
                 talkPageText = re.sub(templateRegex,
-                                      pywikibot.glue_template_and_params((archiveConfig.configTemplateName, params)),
+                                      pywikibot.textlib.glue_template_and_params((archiveConfig.configTemplateName, params)),
                                       talkPageText)
                 return talkPageText
         return talkPageText
 
     def cosmeticChanges(self, sectionText):
-        templates = pywikibot.extract_templates_and_params(sectionText)
+        templates = pywikibot.textlib.extract_templates_and_params(sectionText)
         for name, params in templates:
             if name in archiveConfig.templatesToSubstitute:
                 templateRegex = self.getRegexForTemplate(name, params)
@@ -233,7 +233,7 @@ class PageArchiver:
 
     def removeBottomTemplates(self, text):
         text = text.strip()
-        templates = pywikibot.extract_templates_and_params(text)
+        templates = pywikibot.textlib.extract_templates_and_params(text)
         for name, params in templates:
             templateRegex = self.getRegexForTemplate(name, params)
             for templateText in re.findall(templateRegex, text):

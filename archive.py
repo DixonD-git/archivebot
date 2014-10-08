@@ -35,10 +35,12 @@ def main():
     config.cosmetic_changes = False
 
     # login with archive bot account
-    common.login(settings.username, settings.password)
+    sites = [pywikibot.Site(code, family) for code, family in settings.sites]
+    for site in sites:
+        common.login(settings.username, settings.password, site=site)
 
     # do work
-    for page in pagesToArchiveGenerator.PagesToArchiveGenerator():
+    for page in pagesToArchiveGenerator.PagesToArchiveGenerator(sites):
         pageArchiver = archivePage.PageArchiver(page)
         pageArchiver.archive()
 
