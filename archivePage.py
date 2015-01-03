@@ -23,7 +23,7 @@ import archiveConfig
 import pageArchiveParams
 import pagetools
 import settings
-
+from subprocess import call
 
 class PageArchiver:
     def __init__(self, page):
@@ -358,5 +358,9 @@ class PageArchiver:
 
         try:
             page.put(text, comment=editSummary, force=True)
-        except pywikibot.LockedPage:
+        except (pywikibot.LockedPage, pywikibot.PageSaveRelatedError):
             pywikibot.output(u'Cannot update ' + page.title(asLink=True))
+            try:
+                call(u'echo -e "Subject: Archive bot failure\n\nCheck logs!" | /usr/sbin/exim -odf -i dixond@acm.lviv.ua')
+            except:
+                pass
